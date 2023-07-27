@@ -67,7 +67,12 @@ class OC:
             x = asc(x)
         self.uo = x
         _warn_if_nullable(self.comparable_value)
-        self.full_name = str(self.element)
+
+        self.full_name = (
+            self.element.name if isinstance(self.element, Label)
+            else str(self.element)
+        )
+
         try:
             table_name, name = self.full_name.split(".", 1)
         except ValueError:
@@ -79,7 +84,10 @@ class OC:
 
     @property
     def quoted_full_name(self):
-        return str(self).split()[0]
+        return (
+            self.full_name if isinstance(self.element, Label)
+            else str(self).split()[0]
+        )
 
     @property
     def element(self) -> ColumnElement:
@@ -225,6 +233,9 @@ def _remove_order_direction(ce: ColumnElement) -> ColumnElement:
     x = copied = ce._clone()
     parent = None
     for _ in range(_WRAPPING_DEPTH):
+        if isinstance(x, Label):
+            return x
+
         mod = getattr(x, "modifier", None)
         if mod in _UNSUPPORTED_ORDER_MODIFIERS:
             warn(
